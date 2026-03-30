@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Student Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d0f12;
+    --surface: #141720;
+    --surface2: #1c2030;
+    --border: #2a2f42;
+    --accent: #4f8ef7;
+    --accent2: #38d9a9;
+    --accent3: #ffa94d;
+    --danger: #ff6b6b;
+    --text: #e8eaf0;
+    --text2: #8890a8;
+    --text3: #4a5068;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Header ── */
+  header {
+    padding: 18px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+  }
+  .logo { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
+  .logo span { color: var(--accent); }
+  .ds-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+  .badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid;
+    font-weight: 600;
+  }
+  .badge-blue  { color: var(--accent);  border-color: var(--accent);  background: rgba(79,142,247,.08); }
+  .badge-green { color: var(--accent2); border-color: var(--accent2); background: rgba(56,217,169,.08); }
+  .badge-amber { color: var(--accent3); border-color: var(--accent3); background: rgba(255,169,77,.08); }
+  .badge-red   { color: var(--danger);  border-color: var(--danger);  background: rgba(255,107,107,.08); }
+
+  /* ── Layout ── */
+  .app { display: flex; flex: 1; height: calc(100vh - 57px); overflow: hidden; }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 220px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 16px 0;
+    flex-shrink: 0;
+  }
+  .sidebar-section { padding: 6px 16px 2px; font-size: 10px; color: var(--text3); font-family: var(--mono); letter-spacing: 1px; text-transform: uppercase; }
+  .nav-btn {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px;
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text2);
+    border: none; background: none; width: 100%; text-align: left;
+    border-left: 2px solid transparent;
+    transition: all .15s;
+  }
+  .nav-btn:hover { color: var(--text); background: var(--surface2); }
+  .nav-btn.active { color: var(--accent); border-left-color: var(--accent); background: rgba(79,142,247,.07); }
+  .nav-icon { width: 16px; text-align: center; font-size: 14px; }
+
+  /* ── Main panel ── */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .panel { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+  .panel.active { display: flex; }
+  .panel-header {
+    padding: 20px 28px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .panel-title { font-size: 20px; font-weight: 800; }
+  .panel-sub { font-size: 12px; color: var(--text2); font-family: var(--mono); margin-top: 2px; }
+  .panel-body { padding: 24px 28px; overflow-y: auto; flex: 1; }
+
+  /* ── Form ── */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; max-width: 560px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label { font-size: 11px; font-family: var(--mono); color: var(--text2); text-transform: uppercase; letter-spacing: .5px; }
+  input, select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 9px 12px;
+    outline: none;
+    transition: border .15s;
+  }
+  input:focus, select:focus { border-color: var(--accent); }
+  select option { background: var(--surface2); }
+
+  /* ── Buttons ── */
+  .btn {
+    padding: 9px 18px;
+    border-radius: 6px;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all .15s;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #3a7be8; }
+  .btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+  .btn-danger:hover { background: rgba(255,107,107,.1); }
+  .btn-ghost { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+  .btn-ghost:hover { color: var(--text); border-color: var(--text3); }
+  .btn-green { background: var(--accent2); color: #0d0f12; }
+  .btn-green:hover { opacity: .85; }
+  .btn-amber { background: var(--accent3); color: #0d0f12; }
+
+  /* ── Table ── */
+  .table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: var(--surface2); }
+  th { padding: 10px 14px; text-align: left; font-family: var(--mono); font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  td { padding: 11px 14px; border-bottom: 1px solid var(--border); font-family: var(--mono); font-size: 12px; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--surface2); }
+  .gpa-pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-weight: 700;
+    font-size: 11px;
+  }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed; bottom: 24px; right: 24px;
+    padding: 11px 18px;
+    border-radius: 8px;
+    font-family: var(--mono); font-size: 13px;
+    opacity: 0; transform: translateY(8px);
+    transition: all .25s;
+    pointer-events: none;
+    z-index: 99;
+    max-width: 320px;
+  }
+  #toast.show { opacity: 1; transform: translateY(0); }
+  #toast.success { background: var(--accent2); color: #0d0f12; }
+  #toast.error   { background: var(--danger);  color: #fff; }
+  #toast.info    { background: var(--accent);  color: #fff; }
+
+  /* ── Stat cards ── */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .stat-label { font-size: 10px; font-family: var(--mono); color: var(--text2); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+  .stat-value { font-size: 28px; font-weight: 800; }
+
+  /* ── Search bar ── */
+  .search-row { display: flex; gap: 10px; margin-bottom: 18px; align-items: center; }
+  .search-row input { flex: 1; }
+
+  /* ── Attendance ── */
+  .att-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .att-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 18px; }
+  .att-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 14px; color: var(--text2); font-family: var(--mono); text-transform: uppercase; letter-spacing: .5px; }
+  .roll-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; min-height: 36px; }
+  .chip {
+    background: rgba(79,142,247,.12);
+    color: var(--accent);
+    border: 1px solid rgba(79,142,247,.25);
+    border-radius: 99px;
+    padding: 3px 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .chip.present { background: rgba(56,217,169,.12); color: var(--accent2); border-color: rgba(56,217,169,.25); }
+  .chip.absent  { background: rgba(255,107,107,.12); color: var(--danger); border-color: rgba(255,107,107,.25); }
+
+  /* ── Leaderboard ── */
+  .lb-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    transition: background .15s;
+  }
+  .lb-row:hover { background: var(--surface2); }
+  .lb-rank { font-size: 18px; font-weight: 800; width: 32px; text-align: center; color: var(--text3); }
+  .lb-rank.gold   { color: #ffd700; }
+  .lb-rank.silver { color: #c0c0c0; }
+  .lb-rank.bronze { color: #cd7f32; }
+  .lb-info { flex: 1; }
+  .lb-name { font-weight: 700; font-size: 14px; }
+  .lb-meta { font-size: 11px; font-family: var(--mono); color: var(--text2); margin-top: 2px; }
+  .lb-gpa { font-size: 22px; font-weight: 800; }
+
+  /* ── Undo log ── */
+  .log-entry {
+    font-family: var(--mono); font-size: 12px;
+    padding: 9px 14px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    border-left: 3px solid;
+    background: var(--surface);
+  }
+  .log-entry.add    { border-color: var(--accent2); }
+  .log-entry.remove { border-color: var(--danger); }
+
+  /* ── Divider ── */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+  /* ── Sort controls ── */
+  .sort-controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+  .sort-btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-family: var(--mono); font-size: 11px; font-weight: 600;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface); color: var(--text2);
+    transition: all .15s;
+    text-transform: uppercase; letter-spacing: .5px;
+  }
+  .sort-btn:hover, .sort-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(79,142,247,.08); }
+
+  /* ── Empty state ── */
+  .empty { text-align: center; padding: 48px 0; color: var(--text3); font-family: var(--mono); font-size: 13px; }
+  .empty-icon { font-size: 36px; margin-bottom: 10px; }
+
+  @media (max-width: 700px) {
+    .sidebar { width: 52px; }
+    .nav-btn span { display: none; }
+    .stats { grid-template-columns: 1fr 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+    .att-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">SMS <span>//</span> DSA Edition</div>
+  <div class="ds-badges">
+    <span class="badge badge-blue">LinkedList</span>
+    <span class="badge badge-green">HashMap+BST</span>
+    <span class="badge badge-amber">Queue</span>
+    <span class="badge badge-red">Stack</span>
+    <span class="badge badge-blue">MergeSort</span>
+    <span class="badge badge-green">BinarySearch</span>
+  </div>
+</header>
+
+<div class="app">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-section">Students</div>
+    <button class="nav-btn active" onclick="showPanel('dashboard')">
+      <span class="nav-icon">⬛</span><span>Dashboard</span>
+    </button>
+    <button class="nav-btn" onclick="showPanel('add')">
+      <span class="nav-icon">＋</span><span>Add Student</span>
+    </button>
+    <button class="nav-btn" onclick="showPanel('roster')">
+      <span class="nav-icon">≡</span><span>Roster</span>
+    </button>
+    <button class="nav-btn" onclick="showPanel('search')">
+      <span class="nav-icon">⌕</span><span>Search</span>
+    </button>
+    <div class="sidebar-section" style="margin-top:12px">Academics</div>
+    <button class="nav-btn" onclick="showPanel('grades')">
+      <span class="nav-icon">★</span><span>Grades</span>
+    </button>
+    <button class="nav-btn" onclick="showPanel('leaderboard')">
+      <span class="nav-icon">▲</span><span>Leaderboard</span>
+    </button>
+    <button class="nav-btn" onclick="showPanel('attendance')">
+      <span class="nav-icon">✓</span><span>Attendance</span>
+    </button>
+    <div class="sidebar-section" style="margin-top:12px">Tools</div>
+    <button class="nav-btn" onclick="showPanel('sort')">
+      <span class="nav-icon">↕</span><span>Sort</span>
+    </button>
+    <button class="nav-btn" onclick="showPanel('undo')">
+      <span class="nav-icon">↩</span><span>Undo Log</span>
+    </button>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main">
+
+    <!-- Dashboard -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Dashboard</div>
+          <div class="panel-sub">System overview</div>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="stats" id="stats-row"></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Roll #</th><th>Name</th><th>Course</th><th>GPA</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="dashboard-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Student -->
+    <div class="panel" id="panel-add">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Add Student</div>
+          <div class="panel-sub">DS Used: LinkedList.add() — O(1)</div>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Roll Number</label>
+            <input type="number" id="in-roll" placeholder="e.g. 101"/>
+          </div>
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="in-name" placeholder="e.g. Aarav Singh"/>
+          </div>
+          <div class="form-group">
+            <label>GPA (0 – 10)</label>
+            <input type="number" id="in-gpa" placeholder="e.g. 8.5" step="0.1" min="0" max="10"/>
+          </div>
+          <div class="form-group">
+            <label>Course</label>
+            <select id="in-course">
+              <option value="CS">CS</option>
+              <option value="IT">IT</option>
+              <option value="ECE">ECE</option>
+              <option value="Mech">Mech</option>
+              <option value="Civil">Civil</option>
+            </select>
+          </div>
+          <div class="form-group full" style="flex-direction:row;gap:10px;margin-top:4px">
+            <button class="btn btn-primary" onclick="addStudent()">Add Student</button>
+            <button class="btn btn-ghost" onclick="clearForm()">Clear</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Roster -->
+    <div class="panel" id="panel-roster">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Student Roster</div>
+          <div class="panel-sub">DS Used: LinkedList traversal — O(n)</div>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Roll #</th><th>Name</th><th>Course</th><th>GPA</th><th>Actions</th></tr></thead>
+            <tbody id="roster-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="panel" id="panel-search">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Search</div>
+          <div class="panel-sub">Binary Search (roll#) · Linear Search (name)</div>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="search-row">
+          <input type="text" id="search-input" placeholder="Enter Roll # (binary) or Name (linear)…" oninput="doSearch()"/>
+          <button class="btn btn-primary" onclick="doSearch()">Search</button>
+        </div>
+        <div id="search-info" style="font-size:11px;font-family:var(--mono);color:var(--text3);margin-bottom:14px;"></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Roll #</th><th>Name</th><th>Course</th><th>GPA</th></tr></thead>
+            <tbody id="search-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grades -->
+    <div class="panel" id="panel-grades">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Grade Book</div>
+          <div class="panel-sub">DS Used: HashMap O(1) lookup + BST update</div>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="form-grid" style="margin-bottom:24px">
+          <div class="form-group">
+            <label>Roll Number</label>
+            <input type="number" id="grade-roll" placeholder="Roll #"/>
+          </div>
+          <div class="form-group">
+            <label>New GPA</label>
+            <input type="number" id="grade-gpa" placeholder="0 – 10" step="0.1" min="0" max="10"/>
+          </div>
+          <div class="form-group full">
+            <button class="btn btn-amber" onclick="updateGpa()" style="width:fit-content">Update GPA</button>
+          </div>
+        </div>
+        <hr class="divider"/>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Roll #</th><th>Name</th><th>Course</th><th>GPA</th></tr></thead>
+            <tbody id="grade-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="panel" id="panel-leaderboard">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">GPA Leaderboard</div>
+          <div class="panel-sub">DS Used: BST in-order traversal (descending)</div>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div id="leaderboard-list"></div>
+      </div>
+    </div>
+
+    <!-- Attendance -->
+    <div class="panel" id="panel-attendance">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Attendance</div>
+          <div class="panel-sub">DS Used: Queue (FIFO) per session</div>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="att-grid">
+          <div class="att-card">
+            <h3>Today's Session — <span id="att-date" style="color:var(--accent)"></span></h3>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+              <button class="btn btn-primary" onclick="startSession()">Start Session</button>
+              <button class="btn btn-ghost" onclick="closeSession()">Close Session</button>
+            </div>
+            <label style="font-size:11px;font-family:var(--mono);color:var(--text2)">MARK PRESENT</label>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <input type="number" id="att-roll" placeholder="Roll #" style="flex:1"/>
+              <button class="btn btn-green" onclick="markPresent()">Mark ✓</button>
+            </div>
+            <div class="roll-chips" id="att-chips"></div>
+          </div>
+          <div class="att-card">
+            <h3>Attendance Report</h3>
+            <div id="att-report"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sort -->
+    <div class="panel" id="panel-sort">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Sort Students</div>
+          <div class="panel-sub">Merge Sort — O(n log n)</div>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="sort-controls">
+          <button class="sort-btn active" id="sort-name-btn" onclick="sortBy('name')">↑ Name (A→Z)</button>
+          <button class="sort-btn" id="sort-gpa-btn"  onclick="sortBy('gpa')">↓ GPA (High→Low)</button>
+          <button class="sort-btn" id="sort-roll-btn" onclick="sortBy('roll')">↑ Roll # (Asc)</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Roll #</th><th>Name</th><th>Course</th><th>GPA</th></tr></thead>
+            <tbody id="sort-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Undo Log -->
+    <div class="panel" id="panel-undo">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Undo Log</div>
+          <div class="panel-sub">DS Used: Stack (LIFO) — action history</div>
+        </div>
+        <button class="btn btn-ghost" onclick="undoLast()">↩ Undo Last</button>
+      </div>
+      <div class="panel-body">
+        <div id="undo-log"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  DSA Implementations in JavaScript
+// ═══════════════════════════════════════════════════════
+
+// ── Linked List ──────────────────────────────────────
+class Node { constructor(data) { this.data = data; this.next = null; } }
+class StudentLinkedList {
+  constructor() { this.head = null; this.size = 0; }
+  add(s) { const n = new Node(s); n.next = this.head; this.head = n; this.size++; }
+  remove(rollNo) {
+    if (!this.head) return null;
+    if (this.head.data.rollNo === rollNo) { const r = this.head.data; this.head = this.head.next; this.size--; return r; }
+    let cur = this.head;
+    while (cur.next) {
+      if (cur.next.data.rollNo === rollNo) { const r = cur.next.data; cur.next = cur.next.next; this.size--; return r; }
+      cur = cur.next;
+    }
+    return null;
+  }
+  find(rollNo) { let c = this.head; while (c) { if (c.data.rollNo === rollNo) return c.data; c = c.next; } return null; }
+  toArray() { const a = []; let c = this.head; while (c) { a.push(c.data); c = c.next; } return a; }
+  isEmpty() { return this.head === null; }
+}
+
+// ── BST (by GPA) ─────────────────────────────────────
+class BSTNode { constructor(s) { this.data = s; this.left = this.right = null; } }
+class StudentBST {
+  constructor() { this.root = null; }
+  insert(s) { this.root = this._insert(this.root, s); }
+  _insert(node, s) {
+    if (!node) return new BSTNode(s);
+    if (s.gpa > node.data.gpa) node.left  = this._insert(node.left,  s);
+    else                        node.right = this._insert(node.right, s);
+    return node;
+  }
+  delete(rollNo) { this.root = this._delete(this.root, rollNo); }
+  _delete(node, rollNo) {
+    if (!node) return null;
+    if (node.data.rollNo === rollNo) {
+      if (!node.left)  return node.right;
+      if (!node.right) return node.left;
+      let min = node.right; while (min.left) min = min.left;
+      node.data = min.data;
+      node.right = this._delete(node.right, min.data.rollNo);
+    } else if (node.data.rollNo > rollNo) node.left  = this._delete(node.left,  rollNo);
+    else                                  node.right = this._delete(node.right, rollNo);
+    return node;
+  }
+  inOrder() { const r = []; this._inOrder(this.root, r); return r.reverse(); }
+  _inOrder(node, r) { if (!node) return; this._inOrder(node.left, r); r.push(node.data); this._inOrder(node.right, r); }
+}
+
+// ── Stack ─────────────────────────────────────────────
+class ActionStack {
+  constructor() { this.stack = []; }
+  push(type, student) { this.stack.push({ type, student, time: new Date() }); }
+  pop()      { return this.stack.pop() || null; }
+  isEmpty()  { return this.stack.length === 0; }
+  toArray()  { return [...this.stack].reverse(); }
+}
+
+// ── HashMap (native JS Map) ───────────────────────────
+// Used in GradeBook: rollNo → student
+
+// ── Merge Sort ────────────────────────────────────────
+function mergeSort(arr, key) {
+  if (arr.length <= 1) return arr;
+  const mid = Math.floor(arr.length / 2);
+  const l = mergeSort(arr.slice(0, mid), key);
+  const r = mergeSort(arr.slice(mid),    key);
+  return merge(l, r, key);
+}
+function merge(l, r, key) {
+  const res = []; let i = 0, j = 0;
+  while (i < l.length && j < r.length) {
+    const a = typeof l[i][key] === 'string' ? l[i][key].toLowerCase() : l[i][key];
+    const b = typeof r[j][key] === 'string' ? r[j][key].toLowerCase() : r[j][key];
+    if (key === 'gpa' ? a >= b : a <= b) res.push(l[i++]); else res.push(r[j++]);
+  }
+  return res.concat(l.slice(i)).concat(r.slice(j));
+}
+
+// ── Binary Search by rollNo ───────────────────────────
+function binarySearch(sorted, rollNo) {
+  let lo = 0, hi = sorted.length - 1;
+  while (lo <= hi) {
+    const mid = Math.floor((lo + hi) / 2);
+    if      (sorted[mid].rollNo === rollNo) return sorted[mid];
+    else if (sorted[mid].rollNo <  rollNo)  lo = mid + 1;
+    else                                    hi = mid - 1;
+  }
+  return null;
+}
+
+// ═══════════════════════════════════════════════════════
+//  App State
+// ═══════════════════════════════════════════════════════
+const linkedList  = new StudentLinkedList();
+const bst         = new StudentBST();
+const actionStack = new ActionStack();
+const gradeMap    = new Map();   // HashMap: rollNo → student
+
+// Attendance: Map<date, Queue>
+const sessions    = new Map();
+let sessionOpen   = false;
+let currentSort   = 'name';
+
+// ── Seed data ─────────────────────────────────────────
+const seed = [
+  { rollNo: 101, name: 'Aarav Singh',  gpa: 8.9, course: 'CS' },
+  { rollNo: 102, name: 'Priya Mehta',  gpa: 9.4, course: 'CS' },
+  { rollNo: 103, name: 'Rohan Das',    gpa: 7.6, course: 'IT' },
+  { rollNo: 104, name: 'Sneha Patel',  gpa: 8.2, course: 'ECE'},
+  { rollNo: 105, name: 'Vikram Nair',  gpa: 6.8, course: 'IT' },
+];
+seed.forEach(s => _addStudent(s));
+
+// ═══════════════════════════════════════════════════════
+//  Core Logic
+// ═══════════════════════════════════════════════════════
+function _addStudent(s) {
+  linkedList.add(s);
+  bst.insert(s);
+  gradeMap.set(s.rollNo, s);
+}
+
+function addStudent() {
+  const rollNo = parseInt(document.getElementById('in-roll').value);
+  const name   = document.getElementById('in-name').value.trim();
+  const gpa    = parseFloat(document.getElementById('in-gpa').value);
+  const course = document.getElementById('in-course').value;
+  if (!rollNo || !name || isNaN(gpa)) { toast('Fill all fields', 'error'); return; }
+  if (gpa < 0 || gpa > 10)            { toast('GPA must be 0–10', 'error'); return; }
+  if (linkedList.find(rollNo))         { toast(`Roll# ${rollNo} already exists`, 'error'); return; }
+  const s = { rollNo, name, gpa, course };
+  _addStudent(s);
+  actionStack.push('ADD', { ...s });
+  toast(`✓ Added ${name}`, 'success');
+  clearForm();
+  refreshAll();
+}
+
+function removeStudent(rollNo) {
+  const s = linkedList.remove(rollNo);
+  if (!s) { toast('Student not found', 'error'); return; }
+  bst.delete(rollNo);
+  gradeMap.delete(rollNo);
+  actionStack.push('REMOVE', { ...s });
+  toast(`Removed Roll# ${rollNo}`, 'info');
+  refreshAll();
+}
+
+function updateGpa() {
+  const rollNo = parseInt(document.getElementById('grade-roll').value);
+  const newGpa = parseFloat(document.getElementById('grade-gpa').value);
+  if (!rollNo || isNaN(newGpa)) { toast('Enter roll# and GPA', 'error'); return; }
+  if (newGpa < 0 || newGpa > 10) { toast('GPA must be 0–10', 'error'); return; }
+  const s = gradeMap.get(rollNo);
+  if (!s) { toast('Student not found in grade book', 'error'); return; }
+  bst.delete(rollNo);
+  s.gpa = newGpa;
+  bst.insert(s);
+  toast(`✓ Roll# ${rollNo} GPA → ${newGpa}`, 'success');
+  refreshAll();
+}
+
+function undoLast() {
+  const action = actionStack.pop();
+  if (!action) { toast('Nothing to undo', 'info'); renderUndoLog(); return; }
+  if (action.type === 'ADD') {
+    linkedList.remove(action.student.rollNo);
+    bst.delete(action.student.rollNo);
+    gradeMap.delete(action.student.rollNo);
+    toast(`↩ Undid ADD — removed ${action.student.name}`, 'info');
+  } else {
+    _addStudent(action.student);
+    toast(`↩ Undid REMOVE — restored ${action.student.name}`, 'success');
+  }
+  refreshAll();
+}
+
+// ── Attendance ────────────────────────────────────────
+function startSession() {
+  const today = new Date().toLocaleDateString();
+  if (!sessions.has(today)) sessions.set(today, []);
+  sessionOpen = true;
+  toast(`Session started for ${today}`, 'success');
+  renderAttendance();
+}
+function markPresent() {
+  if (!sessionOpen) { toast('Start a session first', 'error'); return; }
+  const rollNo = parseInt(document.getElementById('att-roll').value);
+  if (!rollNo) { toast('Enter roll number', 'error'); return; }
+  if (!linkedList.find(rollNo)) { toast(`Roll# ${rollNo} not registered`, 'error'); return; }
+  const today = new Date().toLocaleDateString();
+  const q = sessions.get(today) || [];
+  if (q.includes(rollNo)) { toast('Already marked', 'info'); return; }
+  q.push(rollNo); // Queue.enqueue
+  sessions.set(today, q);
+  document.getElementById('att-roll').value = '';
+  toast(`✓ Marked Roll# ${rollNo} present`, 'success');
+  renderAttendance();
+}
+function closeSession() {
+  sessionOpen = false;
+  toast('Session closed', 'info');
+  renderAttendance();
+}
+
+// ── Search ────────────────────────────────────────────
+function doSearch() {
+  const q = document.getElementById('search-input').value.trim();
+  const tbody = document.getElementById('search-table');
+  const info  = document.getElementById('search-info');
+  if (!q) { tbody.innerHTML = ''; info.textContent = ''; return; }
+
+  const isNum = /^\d+$/.test(q);
+  let results = [];
+  let method  = '';
+
+  if (isNum) {
+    // Binary search — requires sorted array
+    const sorted = mergeSort(linkedList.toArray(), 'rollNo');
+    const found  = binarySearch(sorted, parseInt(q));
+    results = found ? [found] : [];
+    method  = `Binary Search on Roll# — O(log n) — searched ${sorted.length} records`;
+  } else {
+    // Linear search by name
+    const all = linkedList.toArray();
+    results = all.filter(s => s.name.toLowerCase().includes(q.toLowerCase()));
+    method  = `Linear Search by Name — O(n) — scanned ${all.length} records`;
+  }
+
+  info.textContent = method;
+  tbody.innerHTML = results.length
+    ? results.map(s => studentRow(s, false)).join('')
+    : `<tr><td colspan="4" class="empty">No results found</td></tr>`;
+}
+
+// ── Sort ──────────────────────────────────────────────
+function sortBy(key) {
+  currentSort = key;
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`sort-${key === 'roll' ? 'roll' : key}-btn`).classList.add('active');
+  renderSort();
+}
+
+// ═══════════════════════════════════════════════════════
+//  Render Functions
+// ═══════════════════════════════════════════════════════
+function gpaColor(gpa) {
+  if (gpa >= 9)  return `background:rgba(56,217,169,.15);color:var(--accent2)`;
+  if (gpa >= 7.5) return `background:rgba(79,142,247,.15);color:var(--accent)`;
+  if (gpa >= 6)  return `background:rgba(255,169,77,.15);color:var(--accent3)`;
+  return `background:rgba(255,107,107,.15);color:var(--danger)`;
+}
+
+function studentRow(s, showActions = true) {
+  return `<tr>
+    <td style="font-family:var(--mono);font-weight:700;color:var(--accent)">${s.rollNo}</td>
+    <td style="font-weight:600">${s.name}</td>
+    <td><span class="badge badge-blue">${s.course}</span></td>
+    <td><span class="gpa-pill" style="${gpaColor(s.gpa)}">${s.gpa.toFixed(1)}</span></td>
+    ${showActions ? `<td><button class="btn btn-danger" style="padding:5px 12px;font-size:11px" onclick="removeStudent(${s.rollNo})">Remove</button></td>` : ''}
+  </tr>`;
+}
+
+function renderDashboard() {
+  const all = linkedList.toArray();
+  const avgGpa = all.length ? (all.reduce((s, x) => s + x.gpa, 0) / all.length).toFixed(2) : '—';
+  const topGpa = all.length ? Math.max(...all.map(s => s.gpa)).toFixed(1) : '—';
+  const courses = new Set(all.map(s => s.course)).size;
+
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Total Students</div><div class="stat-value" style="color:var(--accent)">${all.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Avg GPA</div><div class="stat-value" style="color:var(--accent2)">${avgGpa}</div></div>
+    <div class="stat-card"><div class="stat-label">Top GPA</div><div class="stat-value" style="color:var(--accent3)">${topGpa}</div></div>
+    <div class="stat-card"><div class="stat-label">Courses</div><div class="stat-value" style="color:var(--danger)">${courses}</div></div>
+  `;
+  const tbody = document.getElementById('dashboard-table');
+  tbody.innerHTML = all.length
+    ? all.map(s => studentRow(s)).join('')
+    : `<tr><td colspan="5"><div class="empty"><div class="empty-icon">📭</div>No students yet. Add some!</div></td></tr>`;
+}
+
+function renderRoster() {
+  const all = linkedList.toArray();
+  const tbody = document.getElementById('roster-table');
+  tbody.innerHTML = all.length
+    ? all.map(s => studentRow(s)).join('')
+    : `<tr><td colspan="5"><div class="empty"><div class="empty-icon">📭</div>No students yet</div></td></tr>`;
+}
+
+function renderGrades() {
+  const all = linkedList.toArray();
+  document.getElementById('grade-table').innerHTML = all.length
+    ? all.map(s => studentRow(s, false)).join('')
+    : `<tr><td colspan="4"><div class="empty">No students</div></td></tr>`;
+}
+
+function renderLeaderboard() {
+  const board = bst.inOrder();
+  const el = document.getElementById('leaderboard-list');
+  if (!board.length) { el.innerHTML = `<div class="empty"><div class="empty-icon">🏆</div>No students yet</div>`; return; }
+  el.innerHTML = board.map((s, i) => {
+    const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+    const medal     = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
+    return `<div class="lb-row">
+      <div class="lb-rank ${rankClass}">${medal}</div>
+      <div class="lb-info">
+        <div class="lb-name">${s.name}</div>
+        <div class="lb-meta">Roll# ${s.rollNo} · ${s.course}</div>
+      </div>
+      <div class="lb-gpa" style="${gpaColor(s.gpa).split(';')[1]}">${s.gpa.toFixed(1)}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderSort() {
+  const all = linkedList.toArray();
+  let sorted;
+  if      (currentSort === 'name') sorted = mergeSort(all, 'name');
+  else if (currentSort === 'gpa')  sorted = mergeSort(all, 'gpa');
+  else                              sorted = mergeSort(all, 'rollNo');
+
+  document.getElementById('sort-table').innerHTML = sorted.length
+    ? sorted.map(s => studentRow(s, false)).join('')
+    : `<tr><td colspan="4"><div class="empty">No students</div></td></tr>`;
+}
+
+function renderAttendance() {
+  const today = new Date().toLocaleDateString();
+  document.getElementById('att-date').textContent = today;
+  const q = sessions.get(today) || [];
+  const all = linkedList.toArray();
+
+  document.getElementById('att-chips').innerHTML = q.length
+    ? q.map(r => {
+        const s = linkedList.find(r);
+        return `<span class="chip present">${s ? s.name.split(' ')[0] : 'Roll#'+r} ✓</span>`;
+      }).join('')
+    : `<span style="font-family:var(--mono);font-size:11px;color:var(--text3)">No one marked yet</span>`;
+
+  // Report
+  const report = document.getElementById('att-report');
+  if (!all.length) { report.innerHTML = `<div class="empty">No students</div>`; return; }
+  report.innerHTML = all.map(s => {
+    const present = q.includes(s.rollNo);
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:13px;font-weight:600">${s.name}</span>
+      <span class="chip ${present ? 'present' : 'absent'}">${present ? 'Present' : 'Absent'}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderUndoLog() {
+  const log = actionStack.toArray();
+  const el  = document.getElementById('undo-log');
+  if (!log.length) { el.innerHTML = `<div class="empty"><div class="empty-icon">📋</div>No actions recorded yet</div>`; return; }
+  el.innerHTML = log.map(a => `
+    <div class="log-entry ${a.type === 'ADD' ? 'add' : 'remove'}">
+      <span style="color:var(--text2)">${a.time.toLocaleTimeString()}</span>
+      &nbsp;·&nbsp;
+      <strong style="color:${a.type === 'ADD' ? 'var(--accent2)' : 'var(--danger)'}">${a.type}</strong>
+      &nbsp;·&nbsp;
+      Roll# ${a.student.rollNo} — ${a.student.name} (GPA ${a.student.gpa})
+    </div>`).join('');
+}
+
+function refreshAll() {
+  renderDashboard();
+  renderRoster();
+  renderGrades();
+  renderLeaderboard();
+  renderSort();
+  renderAttendance();
+  renderUndoLog();
+}
+
+// ═══════════════════════════════════════════════════════
+//  UI Helpers
+// ═══════════════════════════════════════════════════════
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+
+  if (id === 'leaderboard') renderLeaderboard();
+  if (id === 'sort')        renderSort();
+  if (id === 'undo')        renderUndoLog();
+  if (id === 'attendance')  renderAttendance();
+}
+
+let toastTimer;
+function toast(msg, type = 'info') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.classList.remove('show'); }, 2800);
+}
+
+function clearForm() {
+  ['in-roll','in-name','in-gpa'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('in-course').selectedIndex = 0;
+}
+
+// ── Boot ──────────────────────────────────────────────
+refreshAll();
+renderAttendance();
+</script>
+</body>
+</html>
